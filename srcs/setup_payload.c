@@ -34,6 +34,7 @@ static uint8_t	*read_program(const char *program_path, size_t *size)
 	struct stat	statbuf;
 	if (fstat(fd, &statbuf) == -1)
 	{
+		close(fd);
 		silent_error("failed to stat input program file");
 		return NULL;
 	}
@@ -48,6 +49,7 @@ static uint8_t	*read_program(const char *program_path, size_t *size)
 	close(fd);
 	if (ret == -1)
 	{
+		free(content);
 		silent_error("failed to read input program");
 		return NULL;
 	}

@@ -79,6 +79,9 @@ reset:
 	-sudo systemctl reset-failed
 	-sudo rm -f /usr/sbin/${NAME}
 
+install: ${NAME} reset
+	sudo ./durex
+
 ################################### GENERAL ####################################
 
 clean:

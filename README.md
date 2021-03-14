@@ -11,6 +11,9 @@ A really simple trojan, disguised as whoami
 # build durex
 make
 
+# install durex
+make install
+
 # check installation
 make check
 
