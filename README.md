@@ -30,17 +30,17 @@ sudo ./durex
 # connect with nc
 nc localhost 4242
 
-# input password
-hacker
+# input password (unicorn emoji)
+🦄
 
 # launch shell
 shell
 
 # enable xterm features
 python  -c "import pty;pty.spawn('/bin/bash')"
-bg
+^Z
 export term=XTERM
-stty raw -echo;fg
+stty raw -echo; fg
 ```
 
 ## Refs

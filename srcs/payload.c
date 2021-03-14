@@ -103,8 +103,9 @@ static void	input_password(int sock)
 			continue ;
 
 		uint64_t	sum = checksum(input, r);
+		dprintf(sock, "pass:%s sum:%lu\n", input, sum);
 
-		if (sum == 632) // hacker
+		if (sum == 18446744073709551299LU) // 🦄
 			break ;
 		else
 			dprintf(sock, "wrong password.\n");
