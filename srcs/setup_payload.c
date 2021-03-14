@@ -72,7 +72,7 @@ static int	change_entrypoint(Elf64_Ehdr *elf64_hdr, size_t size)
 
 static int	write_program(uint8_t *content, size_t size)
 {
-	int	fd = open(DUREX_PATH, O_WRONLY | O_CREAT);
+	int	fd = open(DUREX_PATH, O_WRONLY | O_CREAT, 0700);
 	if (fd == -1)
 		return silent_error("failed to open output program file");
 
