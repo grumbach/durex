@@ -1,30 +1,25 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: agrumbac <agrumbac@student.42.fr>          +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2018/04/10 17:19:11 by agrumbac          #+#    #+#              #
-#    Updated: 2021/03/08 19:49:47 by ichkamo          ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
 
-############################## BIN #############################################
+##################################### BIN ######################################
 
 NAME = durex
 
-SRC =	main.c utils.c
+# Order matters, "payload.c" must be last !
+SRC = main.c            \
+      errors.c          \
+      utils.c           \
+      setup_payload.c   \
+      payload.c
+
 CC = clang
 SRCDIR = srcs
 OBJDIR = objs
 OBJ = $(addprefix ${OBJDIR}/, $(SRC:.c=.o))
 DEP = $(addprefix ${OBJDIR}/, $(SRC:.c=.d))
 
-override CFLAGS += -Wall -Wextra
+override CFLAGS += -Wall -Wextra -pedantic
 LDFLAGS = -Iincludes/ -fsanitize=address,undefined
 
-############################## COLORS ##########################################
+#################################### COLORS ####################################
 
 BY = "\033[33;1m"
 BR = "\033[31;1m"
@@ -46,7 +41,7 @@ X = "\033[0m"
 UP = "\033[A"
 CUT = "\033[K"
 
-############################## RULES ###########################################
+#################################### RULES #####################################
 
 all: art ${NAME}
 
@@ -61,12 +56,30 @@ ${OBJDIR}/%.o: ${SRCDIR}/%.c
 	@${CC} ${CFLAGS} ${LDFLAGS} -c -o $@ $<
 	@printf ${UP}${CUT}
 
-############################### DEBUG ##########################################
+#################################### DEBUG #####################################
 
 debug: fclean
-	${MAKE} all CFLAGS:="-DDEBUG -g" ASFLAGS:="-dDEBUG -g"
+	${MAKE} all CFLAGS:="-DDEBUG -g"
 
-############################## GENERAL #########################################
+check:
+	service ${NAME} status
+
+nc:
+	nc localhost 4242
+
+reset:
+	-sudo killall ${NAME}
+	-sudo systemctl stop ${NAME}
+	-sudo systemctl disable ${NAME}
+	-sudo rm -f /etc/systemd/system/${NAME}
+	-sudo rm -f /etc/systemd/system/${NAME}.service
+	-sudo rm -f /usr/lib/systemd/system/${NAME}
+	-sudo rm -f /usr/lib/systemd/system/${NAME}.service
+	-sudo systemctl daemon-reload
+	-sudo systemctl reset-failed
+	-sudo rm -f /usr/sbin/${NAME}
+
+################################### GENERAL ####################################
 
 clean:
 	@echo ${R}Cleaning"  "[objs]...${X}
@@ -79,7 +92,7 @@ fclean: clean
 
 re: fclean all
 
-############################## DECORATION ######################################
+################################## DECORATION ##################################
 
 art:
 	@echo ${BB}

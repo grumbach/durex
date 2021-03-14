@@ -2,6 +2,20 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <limits.h>
+#include <stdio.h>
+#include <stdint.h>
+
+int	dump_to_file(const char *filepath, const char *str)
+{
+	FILE	*dst = fopen(filepath, "w");
+	if (dst == NULL) return -1;
+
+	if (fputs(str, dst) == EOF)
+		return -1;
+
+	fclose(dst);
+	return 0;
+}
 
 char	*strnchr(char *s, char c, int n)
 {
@@ -46,4 +60,13 @@ long int	read_num(const char *s)
 		return -1;
 
 	return val;
+}
+
+uint64_t        checksum(const char *buf, size_t buflen)
+{
+	uint64_t	sum = 0;
+
+	while (buflen--)
+		sum += buf[buflen];
+	return sum;
 }
